@@ -1,1 +1,243 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhishGuardXAI | Phishing Detection</title>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f5fb;
+      color: #202944;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(120deg, #182848, #3949ab);
+      color: white;
+      padding: 28px 7%;
+    }
+
+    header h1 { font-size: 30px; margin-bottom: 8px; }
+    header p { color: #e0e7ff; line-height: 1.6; }
+
+    .container {
+      max-width: 1050px;
+      margin: 32px auto;
+      padding: 0 20px;
+    }
+
+    .card, .metric {
+      background: white;
+      border-radius: 15px;
+      padding: 24px;
+      margin-bottom: 22px;
+      box-shadow: 0 5px 22px rgba(25, 40, 80, 0.07);
+    }
+
+    h2 { font-size: 21px; margin-bottom: 12px; }
+
+    .description {
+      color: #69738b;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 9px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #cbd2e3;
+      border-radius: 9px;
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
+
+    button {
+      background: #3949ab;
+      color: white;
+      border: 0;
+      padding: 13px 22px;
+      border-radius: 9px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled { opacity: 0.6; cursor: wait; }
+    button:hover:not(:disabled) { background: #283593; }
+
+    .notice {
+      background: #fff8e1;
+      border-left: 4px solid #f0b429;
+      padding: 13px;
+      border-radius: 6px;
+      color: #795a10;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 17px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .metric { margin-bottom: 0; }
+    .metric .label { color: #717b93; font-size: 14px; margin-bottom: 10px; }
+    .metric .value { color: #303f9f; font-size: 19px; font-weight: bold; }
+
+    #result {
+      border-radius: 10px;
+      padding: 17px;
+      background: #f4f6fc;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    footer {
+      text-align: center;
+      color: #798198;
+      padding: 25px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 650px) {
+      .grid { grid-template-columns: 1fr; }
+      header h1 { font-size: 25px; }
+      .card { padding: 19px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>🛡️ PhishGuardXAI</h1>
+    <p>Explainable Machine Learning for Phishing Website Detection</p>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>🔍 Website URL Analysis</h2>
+      <p class="description">
+        Enter a website URL. Backend connectivity and URL prediction
+        capability are checked separately.
+      </p>
+
+      <form id="urlForm">
+        <label for="websiteUrl">Website URL</label>
+        <input
+          type="url"
+          id="websiteUrl"
+          placeholder="https://example.com"
+          required
+        >
+        <button id="analyzeButton" type="submit">Analyze URL →</button>
+      </form>
+
+      <div class="notice">
+        URL-only classification is not enabled yet. The deployed model
+        expects 50 numerical features. The system will not label a URL
+        as phishing or legitimate until compatible feature extraction
+        is implemented.
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="metric">
+        <div class="label">🤖 Machine Learning Model</div>
+        <div class="value">Random Forest</div>
+      </div>
+
+      <div class="metric">
+        <div class="label">📊 Required Features</div>
+        <div class="value">50 Numerical</div>
+      </div>
+
+      <div class="metric">
+        <div class="label">🌐 Backend Status</div>
+        <div class="value" id="apiStatus">Checking...</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>📋 Analysis Results</h2>
+      <div id="result" aria-live="polite">
+        Connecting to the deployed API...
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    PhishGuardXAI | Academic Machine Learning Project
+  </footer>
+
+  <script>
+    const API_BASE = "https://aml-cat-2.onrender.com";
+
+    const apiStatus = document.getElementById("apiStatus");
+    const result = document.getElementById("result");
+    const form = document.getElementById("urlForm");
+    const analyzeButton = document.getElementById("analyzeButton");
+
+    async function checkBackend() {
+      apiStatus.textContent = "Checking...";
+      try {
+        const response = await fetch(`${API_BASE}/health`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+        apiStatus.textContent = "Connected";
+        result.textContent =
+          "Backend connection successful.\n\n" +
+          JSON.stringify(data, null, 2) +
+          "\n\nThe API is reachable. Raw URL prediction still requires " +
+          "a compatible feature-extraction implementation.";
+      } catch (error) {
+        apiStatus.textContent = "Unreachable";
+        result.textContent =
+          "Could not read the backend health endpoint from this page.\n\n" +
+          "Possible causes include a sleeping Render service, a network " +
+          "problem, or missing CORS configuration on the API.\n\n" +
+          "Open this endpoint directly to check the service:\n" +
+          API_BASE + "/health";
+      }
+    }
+
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const url = document.getElementById("websiteUrl").value.trim();
+
+      if (!url) {
+        result.textContent = "Please enter a website URL.";
+        return;
+      }
+
+      analyzeButton.disabled = true;
+      result.textContent =
+        "URL received: " + url + "\n\n" +
+        "No phishing prediction was performed. The current API expects " +
+        "50 numerical model features and does not yet extract them from " +
+        "a raw URL. The URL has not been classified.";
+
+      analyzeButton.disabled = false;
+    });
+
+    checkBackend();
+  </script>
+</body>
+</html>
+
