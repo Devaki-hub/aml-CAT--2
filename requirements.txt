@@ -1,0 +1,14 @@
+pandas
+numpy
+scikit-learn
+matplotlib
+seaborn
+xgboost
+shap
+optuna
+fastapi
+uvicorn[standard]
+pydantic
+joblib
+streamlit
+ucimlrepo
